@@ -3,6 +3,31 @@ module "logs" {
   name   = "fp-fix-dev-logs"
 }
 
+resource "aws_s3_bucket_versioning" "logs" {
+  bucket = "fp-fix-dev-logs"
+
+  versioning_configuration {
+    status = "Enabled"
+  }
+}
+
+resource "aws_s3_bucket_lifecycle_configuration" "logs" {
+  bucket = "fp-fix-dev-logs"
+
+  rule {
+    id     = "expire-noncurrent-versions"
+    status = "Enabled"
+
+    filter {}
+
+    noncurrent_version_expiration {
+      noncurrent_days = 90
+    }
+  }
+
+  depends_on = [aws_s3_bucket_versioning.logs]
+}
+
 # Planted: SSH open to the internet.
 resource "aws_security_group" "admin" {
   name        = "fp-fix-dev-admin"
